@@ -1,0 +1,11 @@
+Rodi's preprocessing pipeline
+Ok. I can tell you very quickly the order I use:
+
+1) filtering of the whole raw data (not epoched, to avoid edge artefacts)
+2) epoch the data
+3) visual inspection to detect bad channels and trials + excluding these from the data
+4) ICA (runica from eeglab)
+5) visual inspection of components and removing of blinks and horizontal eye movements
+6) check data again if it's clean
+7) re-referencing to average
+8) interpolation of bad channels
