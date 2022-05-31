@@ -11,7 +11,7 @@ from matplotlib.widgets import Button, Slider
 %matplotlib auto
 
 # path of nifti scan that you want to visualise
-path = "D:\\Raindrop_data\\p01\\p01_w02\\day01\\fmri_data\\JOYSTICK_POST_0019\\nifti\\"
+path = "D:\\Raindrop_data\\p01\\p01_w02\\day01\\fmri_data\\RESTING_STATE_POST_0020\\nifti\\"
 file = glob.glob(path + '*.nii')
 
 # load data
@@ -24,11 +24,9 @@ steps = 8 # jump between volumes
 fig, axes = plt.subplots(ncols=4, nrows=2, figsize=(20, 10))
 plt.subplots_adjust(bottom=0.2)
 for t, ax in enumerate(axes.flatten()):
-
     ax.imshow(img[:, :, nslice, 0].T, cmap='gray', origin='lower') 
     ax.axis('off')
     ax.set_title('z = ' + str(nslice) + ' v = 0', fontsize=10)
-
 
 # Make a horizontal slider to control the slice.
 axslice = plt.axes([0.15, 0.1, 0.45, 0.03])
@@ -44,6 +42,7 @@ freq_slider = Slider(
 class Index:
     ind = 0
 
+    # move to next 8 volumes
     def next(self, event):
         self.ind += steps
         for t, ax in enumerate(axes.flatten()):    
@@ -51,6 +50,7 @@ class Index:
             ax.set_title('z = ' + str(nslice) +' v = ' + str(self.ind + t), fontsize=10)
         plt.draw()
 
+    # move to previous 8 volumes
     def prev(self, event):
         self.ind -= steps
         for t, ax in enumerate(axes.flatten()):    
@@ -58,6 +58,7 @@ class Index:
             ax.set_title('z = ' + str(nslice) + ' v = ' + str(self.ind + t), fontsize=10)
         plt.draw()
 
+    # update z slice
     def update_slice(self, val):
         nslice = freq_slider.val
         for t, ax in enumerate(axes.flatten()):    
