@@ -7,10 +7,6 @@
 %% Smoothing. Aloi Davide
 % You can run the script manually from the batch editor. 
 
-
-
-
-
 matlabbatch{1}.cfg_basicio.file_dir.dir_ops.cfg_cd.dir = '<UNDEFINED>';
 matlabbatch{2}.spm.spatial.smooth.data = '<UNDEFINED>';
 matlabbatch{2}.spm.spatial.smooth.fwhm = [8 8 8];
