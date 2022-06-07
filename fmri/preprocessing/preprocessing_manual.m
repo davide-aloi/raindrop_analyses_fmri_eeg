@@ -17,8 +17,8 @@
 % functional file. 
 
 %% Part 4: movement regressor 
-max_mm = 4
-max_rad = 0.065
+max_mm = 2
+max_rad = 0.035
 %% W02
 % w02 day01 tennis task
 cd D:\Raindrop_data\p01\p01_w02\day01\fmri_data\TENNIS_TASK_0016\nifti\
