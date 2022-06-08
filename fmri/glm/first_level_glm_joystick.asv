@@ -1,0 +1,82 @@
+% List of open inputs
+% fMRI model specification: Directory - cfg_files
+% fMRI model specification: Scans - cfg_files
+% fMRI model specification: Onsets - cfg_entry
+% fMRI model specification: Durations - cfg_entry
+% fMRI model specification: Onsets - cfg_entry
+% fMRI model specification: Durations - cfg_entry
+clear all
+jobfile = {'C:\Users\davide\Documents\GitHub\raindrop_analyses_fmri_eeg\fmri\glm\first_level_glm_joystick_job.m'}; %directory of the .m file to run
+
+
+
+% functional files
+paths = {'D:\Raindrop_data\p01\p01_w02\day01\fmri_data\JOYSTICK_BASELINE_0015\nifti\'
+        'D:\Raindrop_data\p01\p01_w02\day01\fmri_data\JOYSTICK_POST_0019\nifti\'
+        'D:\Raindrop_data\p01\p01_w02\day05\fmri_data\JOYSTICK_BASELINE_0005\nifti\'
+        'D:\Raindrop_data\p01\p01_w02\day05\fmri_data\JOYSTICK_POST_0010\nifti\'
+        'D:\Raindrop_data\p01\p01_w04\day01\fmri_data\JOYSTICK_BASELINE_0005\nifti\'
+        'D:\Raindrop_data\p01\p01_w04\day01\fmri_data\JOYSTICK_POST_0009\nifti'
+        'D:\Raindrop_data\p01\p01_w04\day05\fmri_data\JOYSTICK_BASELINE_0005\nifti'
+        'D:\Raindrop_data\p01\p01_w04\day05\fmri_data\JOYSTICK_POST_0009\nifti'};
+
+paths_scans = {dir(paths{1 + 'sr*.nii'})
+    };
+filename = {};
+events = {};
+rp = {};
+
+
+
+
+nrun = numel(participants) * numel(sessions) * numel(conditions);
+jobs = repmat(jobfile, 1, nrun);
+
+%% I create all the paths
+for i = 1:numel(participants)
+    for ii = 1:numel(sessions)
+        for iii = 1:numel(conditions)
+          % paths and functional scans
+          this_ses_path = dir(strcat(main_path,'/sub-',participants{i},'/ses-w',sessions{ii},'*',conditions{iii}))
+          this_rp_file_name = dir(strcat(main_path,'/sub-',participants{i},'/',this_ses_path.name,'/func/','rp*'))
+          rp{end+1} = fullfile(main_path,strcat('sub-',participants{i}),this_ses_path.name,'func',this_rp_file_name.name);
+          paths{end+1} = strcat(main_path,'sub-',participants{i},'/',this_ses_path.name,'/func/');
+          
+          paths_scans{end+1}  = fullfile(paths{end}); %this is what is going to be fed to spm
+
+         
+          
+          folder_events_for_spm = dir(fullfile(behavioural_path,strcat('sub',participants{i}),strcat('sub',participants{i},'_sess',ses_for_onsets{ii},'*')))
+          events_for_spm_file = dir(fullfile(behavioural_path,strcat('sub',participants{i}),folder_events_for_spm.name,strcat('*',condition_labels{iii},'_onsets4spm.mat')));
+          onsets_for_spm_path = fullfile(behavioural_path,strcat('sub',participants{i}),folder_events_for_spm.name,events_for_spm_file.name)
+          events{end+1} = onsets_for_spm_path
+        end
+    end
+end
+
+
+%%
+
+inputs = cell(5, nrun);
+
+for crun = 1:nrun
+    inputs{1, crun} = cellstr(paths{crun});
+    inputs{2, crun} = cellstr(fullfile(paths{crun},'glm_hpf_rp_Feb21_unfiltered')); % fMRI model specification: Directory - cfg_files
+    inputs{3, crun} = cellstr(spm_select('FPList',paths_scans(crun),'sw.*.nii'));
+
+    %onsets = readtable(events{crun});
+    onsets = load(events{crun})
+    % - this is what the line above used to be (char(strcat(paths{crun},'/',events{crun})),'tab'); % I read the onsets
+    % this needs to read a txt file - but only reading the 'move' onsets
+    % which are the first 8
+
+   % fMRI model specification: Scans - cfg_files
+    inputs{4, crun} = onsets.moveonsets(1:8); % fMRI model specification: Onsets - cfg_entry
+    
+    inputs{5,crun} = cellstr(spm_select('FPList',paths{crun},'rp.*'));
+    
+end
+
+% this return comment has been added to make sure that we are generaiting the right paths before running the spm command
+%spm('defaults', 'FMRI');
+%spm_jobman('run', jobs, inputs{:});
