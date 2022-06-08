@@ -25,35 +25,35 @@ matlabbatch{1}.spm.stats.factorial_design.des.fd.fact(3).ancova = 0;
 matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(1).levels = [1
                                                                     1
                                                                     1];
-matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(1).scans = {'D:\Raindrop_data\p01\p01_w02\day01\fmri_data\JOYSTICK_BASELINE_0015\nifti\glm_1st_level\con_0002.nii,1'};
+matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(1).scans = {'D:\Raindrop_data\p01\p01_w02\day01\fmri_data\JOYSTICK_BASELINE_0015\nifti\glm_1st_level_th_0\con_0002.nii,1'};
 matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(2).levels = [1
                                                                     1
                                                                     2];
-matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(2).scans = {'D:\Raindrop_data\p01\p01_w02\day01\fmri_data\JOYSTICK_POST_0019\nifti\glm_first_level\con_0002.nii,1'};
+matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(2).scans = {'D:\Raindrop_data\p01\p01_w02\day01\fmri_data\JOYSTICK_POST_0019\nifti\glm_1st_level_th_0\con_0002.nii,1'};
 matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(3).levels = [1
                                                                     2
                                                                     1];
-matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(3).scans = {'D:\Raindrop_data\p01\p01_w02\day05\fmri_data\JOYSTICK_BASELINE_0005\nifti\glm_1st_level\con_0002.nii,1'};
+matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(3).scans = {'D:\Raindrop_data\p01\p01_w02\day05\fmri_data\JOYSTICK_BASELINE_0005\nifti\glm_1st_level_th_0\con_0002.nii,1'};
 matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(4).levels = [1
                                                                     2
                                                                     2];
-matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(4).scans = {'D:\Raindrop_data\p01\p01_w02\day05\fmri_data\JOYSTICK_POST_0010\nifti\glm_first_level\con_0002.nii,1'};
+matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(4).scans = {'D:\Raindrop_data\p01\p01_w02\day05\fmri_data\JOYSTICK_POST_0010\nifti\glm_1st_level_th_0\con_0002.nii,1'};
 matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(5).levels = [2
                                                                     1
                                                                     1];
-matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(5).scans = {'D:\Raindrop_data\p01\p01_w04\day01\fmri_data\JOYSTICK_BASELINE_0005\nifti\glm_1st_level\con_0002.nii,1'};
+matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(5).scans = {'D:\Raindrop_data\p01\p01_w04\day01\fmri_data\JOYSTICK_BASELINE_0005\nifti\glm_1st_level_th_0\con_0002.nii,1'};
 matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(6).levels = [2
                                                                     1
                                                                     2];
-matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(6).scans = {'D:\Raindrop_data\p01\p01_w04\day01\fmri_data\JOYSTICK_POST_0009\nifti\glm_1st_level\con_0002.nii,1'};
+matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(6).scans = {'D:\Raindrop_data\p01\p01_w04\day01\fmri_data\JOYSTICK_POST_0009\nifti\glm_1st_level_th_0\con_0002.nii,1'};
 matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(7).levels = [2
                                                                     2
                                                                     1];
-matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(7).scans = {'D:\Raindrop_data\p01\p01_w04\day05\fmri_data\JOYSTICK_BASELINE_0005\nifti\glm_1st_level\con_0002.nii,1'};
+matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(7).scans = {'D:\Raindrop_data\p01\p01_w04\day05\fmri_data\JOYSTICK_BASELINE_0005\nifti\glm_1st_level_th_0\con_0002.nii,1'};
 matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(8).levels = [2
                                                                     2
                                                                     2];
-matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(8).scans = {'D:\Raindrop_data\p01\p01_w04\day05\fmri_data\JOYSTICK_POST_0009\nifti\glm_1st_level\con_0002.nii,1'};
+matlabbatch{1}.spm.stats.factorial_design.des.fd.icell(8).scans = {'D:\Raindrop_data\p01\p01_w04\day05\fmri_data\JOYSTICK_POST_0009\nifti\glm_1st_level_th_0\con_0002.nii,1'};
 matlabbatch{1}.spm.stats.factorial_design.des.fd.contrasts = 1;
 matlabbatch{1}.spm.stats.factorial_design.cov = struct('c', {}, 'cname', {}, 'iCFI', {}, 'iCC', {});
 matlabbatch{1}.spm.stats.factorial_design.multi_cov = struct('files', {}, 'iCFI', {}, 'iCC', {});
