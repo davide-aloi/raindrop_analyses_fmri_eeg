@@ -106,3 +106,30 @@ rp = dir('rp*.txt');
 mov_regr = stick_regressor(rp.name, max_mm, max_rad)';
 disp({'Volumes excluded: '} + string(sum(mov_regr(7,:) == 0)) + ' out of ' + string(numel(mov_regr(1,:))))
 writetable(table(mov_regr'), 'regr.txt')
+
+% w06 day01 tennis task
+cd D:\Raindrop_data\p01\p01_w06\day01\fmri_data\TENNIS_TASK_0006\nifti
+disp(pwd)
+rp = dir('rp*.txt');
+mov_regr = stick_regressor(rp.name, max_mm, max_rad)';
+disp({'Volumes excluded: '} + string(sum(mov_regr(7,:) == 0)) + ' out of ' + string(numel(mov_regr(1,:))))
+writetable(table(mov_regr'), 'regr.txt')
+% w06 day01 Joystick baseline
+cd D:\Raindrop_data\p01\p01_w06\day01\fmri_data\JOYSTICK_BASELINE_0005\nifti
+disp(pwd)
+rp = dir('rp*.txt');
+mov_regr = stick_regressor(rp.name, max_mm, max_rad)';
+disp({'Volumes excluded: '} + string(sum(mov_regr(7,:) == 0)) + ' out of ' + string(numel(mov_regr(1,:))))
+writetable(table(mov_regr'), 'regr.txt')
+% w06 day01 Joystick post
+cd D:\Raindrop_data\p01\p01_w06\day01\fmri_data\JOYSTICK_POST_0009\nifti
+disp(pwd)
+rp = dir('rp*.txt');
+mov_regr = stick_regressor(rp.name, max_mm, max_rad)';
+disp({'Volumes excluded: '} + string(sum(mov_regr(7,:) == 0)) + ' out of ' + string(numel(mov_regr(1,:))))
+writetable(table(mov_regr'), 'regr.txt')
+
+% w06 day05 tennis task
+% w06 day05 Joystick baseline
+% w06 day05 Joystick Post
+
