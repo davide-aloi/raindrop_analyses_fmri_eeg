@@ -25,7 +25,7 @@ paths = {'D:\Raindrop_data\p01\p01_w02\day01\fmri_data\JOYSTICK_BASELINE_0015\ni
     'D:\Raindrop_data\p01\p01_w06\day05\fmri_data\JOYSTICK_POST_0009\nifti\glm_first_level\'
 }
 
-% repeat this for all 3 rois!!!!!!!
+% Repeat this for all 3 rois!!!!!!!
 areas = {'M1','SMA','Th'}; % third input
 radius = [4 4 4]; %fifth input 
 centres = [-25 -33 37; -6.9 -22.9 48.1; -10 -21.4 -3.8]; %fourth input and sixth input 
@@ -43,7 +43,7 @@ for i = 1:length(paths)
     matlabbatch{1}.spm.util.voi.spmmat  = cellstr(spm_mat_file);
     matlabbatch{1}.spm.util.voi.adjust  = 1;                    % Effects of interest contrast number
     matlabbatch{1}.spm.util.voi.session = 1;                    % Session index
-    matlabbatch{1}.spm.util.voi.name    = roi_name;               % VOI name
+    matlabbatch{1}.spm.util.voi.name    = roi_name;             % VOI name
 
     % Define thresholded SPM for finding the subject's local peak response
     matlabbatch{1}.spm.util.voi.roi{1}.spm.spmmat      = {''};

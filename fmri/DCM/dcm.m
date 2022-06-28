@@ -70,7 +70,6 @@ for crun = 1:nruns
         fullfile(glm_dir, SMAname.name);
         };
 
-
     for r = 1:length(f)
         XY = load(f{r});
         xY(r) = XY.xY;
