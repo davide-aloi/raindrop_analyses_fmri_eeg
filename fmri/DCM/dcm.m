@@ -1,10 +1,10 @@
-% DCM patient 1
-main_path = 'D:\Raindrop_data\p01\';
+% Author: Davide Aloi
+% Description: DCM for the joystick task, subject 01
 
 % Path definition
-glm_path = {};
-nruns = 12;
+nruns = 12; % number of scans 
 
+% paths to scans
 paths = {'D:\Raindrop_data\p01\p01_w02\day01\fmri_data\JOYSTICK_BASELINE_0015\nifti\'
     'D:\Raindrop_data\p01\p01_w02\day01\fmri_data\JOYSTICK_POST_0019\nifti\'
     'D:\Raindrop_data\p01\p01_w02\day05\fmri_data\JOYSTICK_BASELINE_0005\nifti\'
@@ -27,7 +27,6 @@ TE = 2;  % Echo time (secs)
 % Experiment settings
 nregions    = 3;
 nconditions = 1;
-nruns = 12;
 
 % Index of each condition in tha DCM. If you had more than one condition,
 % your first one would be 'task'
@@ -52,7 +51,8 @@ c = ones(nregions,nconditions);
 % D-matrix (disabled)
 d = zeros(nregions,nregions,0);
 
-for crun = 1:nruns %
+% iterate each run and run dcm
+for crun = 1:nruns 
 
     % Load SPM
     thisrunpath = paths{crun};
@@ -134,7 +134,6 @@ if tf
     GCM = cellstr(dcms);
 
     % Save non-estimated DCM
-
     save(fullfile(out_dir,'GCM_all_not_estimated.mat'),'GCM');
 
     % Filenames -> DCM structures

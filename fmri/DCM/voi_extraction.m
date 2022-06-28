@@ -1,3 +1,15 @@
+% Author: Davide Aloi
+% Description: Extract VOIs, subject 01
+
+% NB: I was a bit lazy so I just re run this script 3 times, changing the variables
+% roi_name, rad and centre.
+
+% NB: this is a bit different from what we did for wp1a/b and wp2a, in the sense that I did
+% not use the spm.mat file to identify a smaller voi within a bigger voi centered on the coordinates
+% derived from the activation at baseline for move > rest. Instead, we visually defined the
+% coordinates for m1, sma and th with Davinia, and I used those to extract the 4mm vois.
+% That's why I changed matlabbatch{1}.spm.util.voi.expression = 'i1 + i3'; to 
+% matlabbatch{1}.spm.util.voi.expression = 'i2';  
 
 paths = {'D:\Raindrop_data\p01\p01_w02\day01\fmri_data\JOYSTICK_BASELINE_0015\nifti\glm_first_level\'
     'D:\Raindrop_data\p01\p01_w02\day01\fmri_data\JOYSTICK_POST_0019\nifti\glm_first_level\'
@@ -15,7 +27,7 @@ paths = {'D:\Raindrop_data\p01\p01_w02\day01\fmri_data\JOYSTICK_BASELINE_0015\ni
 
 % repeat this for all 3 rois!!!!!!!
 areas = {'M1','SMA','Th'}; % third input
-radius = [13 13 7]; %fifth input 
+radius = [4 4 4]; %fifth input 
 centres = [-25 -33 37; -6.9 -22.9 48.1; -10 -21.4 -3.8]; %fourth input and sixth input 
 
 % Change these 3 variables
@@ -54,7 +66,6 @@ for i = 1:length(paths)
     %matlabbatch{1}.spm.util.voi.roi{3}.sphere.move.global.spm  = 1;       % Index of SPM within the batch
     %matlabbatch{1}.spm.util.voi.roi{3}.sphere.move.global.mask = 'i2';    % Index of the outer sphere within the batch
 
-    % Include voxels in the thresholded SPM (i1) and the mobile inner sphere (i3)
     matlabbatch{1}.spm.util.voi.expression = 'i2'; 
 
     % Run the batch
