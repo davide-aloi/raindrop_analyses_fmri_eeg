@@ -37,7 +37,7 @@ raw = mne.io.read_raw_egi(raw_fname, preload=True)
 raw_orig = raw.copy() #Backup of the original data.
 print(raw.info) #Info about our EEG recording
 print(raw.ch_names) #Channels
-montage = mne.channels.make_standard_montage('GSN-HydroCel-128') #Is this the right montage? IDK
+#Is this the right montage? IDK
 #montage.plot() #If you want to visualise the montage.
 
 
