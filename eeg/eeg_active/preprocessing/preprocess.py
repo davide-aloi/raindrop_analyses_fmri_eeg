@@ -1,9 +1,13 @@
 def preprocess(session_name, output_folder, raw, montage, stim_channel, events_id = dict(),
                 tmin = -.5, tmax = 4, filter = (1, 40), reject=dict(eeg=300e-6), baseline = None, save = False):
+                
+    # ADD DESCRIPTION
+    # ADD ARGUMENTS / OUTPUT 
 
     # Workflow: autoreject -> ica -> autoreject
     # The workflow is suggested here 
     # https://autoreject.github.io/stable/auto_examples/plot_autoreject_workflow.html#sphx-glr-auto-examples-plot-autoreject-workflow-py
+
     print('Preprocessing: ' + session_name)
     print('Output folder: ' + output_folder)
     
@@ -12,6 +16,7 @@ def preprocess(session_name, output_folder, raw, montage, stim_channel, events_i
     import time
     import mne
     import matplotlib.pyplot as plt
+    import numpy as np
 
     #print(raw.info)
     montage = mne.channels.make_standard_montage(montage)
