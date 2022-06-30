@@ -27,6 +27,6 @@ for n, session in enumerate(sessions):
     sessions_raw.append(glob.glob(session + '\*.mff')[0])
 
 raw = mne.io.read_raw_egi(sessions_raw[0], preload=True)
-cd C:\Users\davide\Documents\GitHub\raindrop_analyses_fmri_eeg\eeg\eeg_active
+
 cleaned_epochs = preprocess('p01_w01','D:\\Raindrop_eeg_analysis\\p01\\', raw, 'GSN-HydroCel-128', 'STI 014',
             events_id = dict(move=1,relax=2), save = True)

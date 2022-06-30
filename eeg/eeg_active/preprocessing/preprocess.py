@@ -4,10 +4,11 @@ def preprocess(session_name, output_folder, raw, montage, stim_channel, events_i
     EEG data preprocessing for ERD analysis. 
     Steps: 
         - definying montage
-        - applying low / high pass filters
+        - applying low and high pass filters
         - finding events / epoching
         - bad electrodes detection using RANSAC (which are excluded from ICA)
         - bad epochs detection (before ICA)
+        - ICA without bad electrodes / bad epochs
 
 
     Args:
