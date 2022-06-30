@@ -125,11 +125,12 @@ def preprocess(session_name, output_folder, raw, montage, stim_channel, events_i
   
     # Re-Referencing after ICA
     mne.set_eeg_reference(epochs_ar, ref_channels='average', copy = False)
+
+    # Applying baseline correction
     epochs_ar.apply_baseline()
 
     # Saving cleaned epochs
     if save == True:
         epochs_ar.save(output_folder + session_name + '_cleaned_epochs.mff' ,overwrite=True)
-
 
     return epochs_ar
