@@ -1,5 +1,7 @@
-def preprocess(session_name, output_folder, raw, montage, stim_channel, events_id = dict(),
-                tmin = -.5, tmax = 4, filter = (1, 40), reject=dict(eeg=300e-6), baseline = None, save = False):
+def preprocess(session_name, output_folder, raw, montage, reference, stim_channel, picks,
+                events_id, tmin = -.5, tmax = 4, filter = (1, 40),
+                reject=dict(eeg=300e-6), baseline = None, save = False):
+
     """_summary_
     EEG data preprocessing for ERD analysis. 
     Steps: 
@@ -9,6 +11,7 @@ def preprocess(session_name, output_folder, raw, montage, stim_channel, events_i
         - bad electrodes detection using RANSAC (which are excluded from ICA)
         - bad epochs detection (before ICA)
         - ICA without bad electrodes / bad epochs
+        - applying baseline
 
 
     Args:
@@ -26,75 +29,85 @@ def preprocess(session_name, output_folder, raw, montage, stim_channel, events_i
         save (bool, optional): _description_. Defaults to False.
 
     Returns:
-        _type_: _description_
+        _type_: epoched data
     """
 
     # Workflow: autoreject -> ica -> autoreject
     # The workflow is suggested here 
     # https://autoreject.github.io/stable/auto_examples/plot_autoreject_workflow.html#sphx-glr-auto-examples-plot-autoreject-workflow-py
 
-    print('Preprocessing: ' + session_name)
-    print('Output folder: ' + output_folder)
-    
     import os
     import autoreject
-    import time
+    from autoreject import Ransac
     import mne
     import matplotlib.pyplot as plt
     import numpy as np
+    from time import time, ctime
 
+
+    print('Preprocessing session: ' + session_name)
+    print('Results will be saved in folder: ' + output_folder)
+    
     # Specifying montage
+    print(f'Montage: {montage}')
     montage = mne.channels.make_standard_montage(montage)
-
-
+    
     # Filtering Data
+    print(f'Filtering data ({filter[0]} - {filter[1]}Hz. {ctime()})')
     raw_filtered = raw.copy().filter(filter[0], filter[1])
-
+    print(f'Filtering Done. {ctime()}')
 
     # Reference on average
-    raw_filtered.set_eeg_reference(ref_channels='average')
-    picks_eeg = mne.pick_types(raw.info, meg=False, eeg=True, eog=True, stim=False,
-                           exclude='bads')
-
+    print(f'Setting reference: {reference}')
+    raw_filtered.set_eeg_reference(ref_channels=reference)
 
     # Finding events
-    events = mne.find_events(raw, stim_channel='STI 014', verbose=True) # or STIM
-    # Epoching data 
+    events = mne.find_events(raw, stim_channel=stim_channel, verbose=True)
+
+    # Epoching data
+    print(f'Epoching data: {tmin}s - {tmax}s.') 
     epochs = mne.Epochs(raw_filtered, events, events_id, tmin, tmax, baseline=None,
                         reject=None, verbose=False, detrend=0, preload=True)
 
-
     # Bad channel detection (ransac)
-    from autoreject import Ransac  # this uses ransac from PREP
-    print('Detecting bad channels with Ransac')
-    print(time.strftime("%H:%M:%S", time.localtime()))
-    ransac = Ransac(verbose=True, picks=picks_eeg, n_jobs=-1)
+    print(f'Detecting bad channels with Ransac. {ctime()}')
+    ransac = Ransac(verbose=True, picks=picks, n_jobs=-1)
     epochs_clean = ransac.fit_transform(epochs)
     bad_chs = ransac.bad_chs_ # list with bad channels according to RANSAC 
     print('Bad channels detected: ' + str(len(bad_chs)))
-    print(time.strftime("%H:%M:%S", time.localtime()))
-    
+    print(bad_chs)
 
+    #This checks electrodes that are outliers (using the unfiltered raw data)
+    print(f'Bad channels based on z-point > 3.0, {ctime()}')
+    from preprocessing.is_outlier import is_outlier
+    data, times = raw[picks, :] #Done on unfiltered data
+    outliers = is_outlier(data, 3.0)
+    outlier_electrodes = []; #This array will contain bad electrodes (electrodes that differ a lot from all the others)
+    for x in range(0, len(outliers)):
+        if outliers[x] == 1:
+            print ("Electrode %d should be checked." % (x+1))
+            outlier_electrodes.append(x+1)
+    print(f'Bad channels with z > 3.0: {outliers.sum()}')
+    print('Electrodes: ')
+    print(outlier_electrodes)
+    
     # Bad epochs rejection (autoreject before ICA)
-    print('Bad epochs detection (autorject)')
+    print(f'Bad epochs detection (autorject). {ctime()}')
     ar = autoreject.AutoReject(n_interpolate=[1, 2, 3, 4], random_state=11,
                             n_jobs=-1, verbose=True)
     ar.fit(epochs[:20])  # fit on a few epochs to save time
-    print(time.strftime("%H:%M:%S", time.localtime()))
     epochs_ar, reject_log = ar.transform(epochs, return_log=True)
     reject_log.plot('horizontal', show = False)
     plt.savefig(output_folder + session_name + '_autoreject_before_ica.jpg', dpi = 160)
-
-    print(f'Rejected Epochs: {(reject_log.bad_epochs == True).sum()}')
-    print(time.strftime("%H:%M:%S", time.localtime()))
+    print(f'Plot saved in: {output_folder} {session_name} _autoreject_before_ica.jpg')
+    print(f'Epochs rejected: {(reject_log.bad_epochs == True).sum()}')
 
     # ICA without bad epochs / bad channelss
     epochs.info['bads'] = bad_chs
-    print('Fitting ICA')
+    print(f'Fitting ICA. {ctime()}')
     ica = mne.preprocessing.ICA(random_state=99)
     ica.fit(epochs[~reject_log.bad_epochs])
     print('Completed.')
-    print(time.strftime("%H:%M:%S", time.localtime()))
 
     # ICA visual inspection
     print('Visually inspect results and select eye-blinks components...')
@@ -126,7 +139,10 @@ def preprocess(session_name, output_folder, raw, montage, stim_channel, events_i
     # Re-Referencing after ICA
     mne.set_eeg_reference(epochs_ar, ref_channels='average', copy = False)
 
-    # Applying baseline correction
+    ### Applying baseline correction
+    ## Rodi said: from -800 to -200
+    ## Rodi said to epoch from - 1s to 4
+
     epochs_ar.apply_baseline()
 
     # Saving cleaned epochs

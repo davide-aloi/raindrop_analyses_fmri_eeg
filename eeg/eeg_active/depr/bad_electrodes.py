@@ -5,7 +5,7 @@ picks = mne.pick_types(raw.info, meg=False, eeg=True,stim = False) #I take only 
 data, times = raw_orig[picks, :] #Done on unfiltered data
 
 #This checks electrodes that are outliers (using the unfiltered raw data)
-outliers = is_outlier(data, 3.0);
+outliers = is_outlier(data, 3.0)
 outlier_electrodes = []; #This array will contain bad electrodes (electrodes that differ a lot from all the others)
 for x in range(0, len(outliers)):
 	if outliers[x] == 1:
