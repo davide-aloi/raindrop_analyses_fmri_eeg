@@ -142,6 +142,7 @@ def preprocess(session_name, output_folder, raw, montage, reference, stim_channe
     plt.savefig(output_folder + session_name + '_autoreject_after_ica.jpg', dpi = 160)
 
 
+    # THIS PLOT CREATES PROBLEMS FOR SOME REASON
     # We will visualize the cleaned average data and compare it against the bad segments.
     evoked_bad = epochs[reject_log.bad_epochs].average()
     plt.figure()
