@@ -1,7 +1,9 @@
 def preprocess(session_name, output_folder, raw, montage, reference, stim_channel, picks,
                 events_id, tmin = -.5, tmax = 4, filter = (1, 40),
-                reject=dict(eeg=300e-6), baseline = (None, 0), ica_labels = True, save = False):
-    ### UPDATE SUMMARY
+                reject=dict(eeg=300e-6), baseline = (None, 0), ica_labels = True,
+                review_ica = True, save = True):
+    
+    ### UPDATE SUMMARY!!!
     """_summary_
     EEG data preprocessing for ERD analysis. 
     Steps: 
@@ -44,30 +46,35 @@ def preprocess(session_name, output_folder, raw, montage, reference, stim_channe
     import numpy as np
     from time import time, ctime
 
+    report = mne.Report(verbose=True, raw_psd=True)
+
 
     print('Preprocessing session: ' + session_name)
-    print('Results will be saved in folder: ' + output_folder)
+    print('Results and plots will be saved in folder: ' + output_folder)
     
     # Specifying montage
     print(f'Montage: {montage}')
     montage = mne.channels.make_standard_montage(montage)
     
-    # Filtering Data
-    print(f'Filtering data ({filter[0]} - {filter[1]}Hz). {ctime()}')
-    raw_filtered = raw.copy().filter(filter[0], filter[1])
-    print(f'Filtering Done. {ctime()}')
-
-    # Reference on average
-    print(f'Setting reference: {reference}')
-    raw_filtered.set_eeg_reference(ref_channels=reference)
-
     # Finding events
     events = mne.find_events(raw, stim_channel=stim_channel, verbose=True)
 
     # Epoching data
     print(f'Epoching data: {tmin}s - {tmax}s.') 
-    epochs = mne.Epochs(raw_filtered, events, events_id, tmin, tmax, baseline=None,
+    epochs = mne.Epochs(raw, events, events_id, tmin, tmax, baseline=None,
                         reject=None, verbose=False, detrend=0, preload=True)
+
+    # Filtering Data
+    print(f'Filtering data ({filter[0]} - {filter[1]}Hz). {ctime()}')
+    raw = raw.copy().filter(filter[0], filter[1])
+    fig1 = raw.plot_psd(fmin = filter[0], fmax = filter[1], show = False)
+    epochs = epochs.copy().filter(filter[0], filter[1])
+    print(f'Filtering Done. {ctime()}')
+
+    # Reference on average
+    print(f'Setting reference: {reference}')
+    raw.set_eeg_reference(ref_channels=reference)
+    epochs.set_eeg_reference(ref_channels=reference)
 
     # Bad channel detection (ransac)
     print(f'Detecting bad channels with Ransac. {ctime()}')
@@ -76,6 +83,7 @@ def preprocess(session_name, output_folder, raw, montage, reference, stim_channe
     bad_chs = ransac.bad_chs_ # list with bad channels according to RANSAC 
     print('Bad channels detected: ' + str(len(bad_chs)))
     print(bad_chs)
+    report.add_code(bad_chs, title = 'Bad electrodes (ransac)')
 
     #This checks electrodes that are outliers (using the unfiltered raw data)
     print(f'Bad channels based on z-point > 3.0, {ctime()}')
@@ -88,24 +96,25 @@ def preprocess(session_name, output_folder, raw, montage, reference, stim_channe
             print ("Electrode %d should be checked." % (x+1))
             outlier_electrodes.append(x+1)
     print(f'Bad channels with z > 3.0: {outliers.sum()}')
-    print('Electrodes: ')
+    print('Channels: ')
     print(outlier_electrodes)
-    
+    report.add_code(outlier_electrodes, title = 'Bad electrodes (z > 3.0)')
+
     # Bad epochs rejection (autoreject before ICA)
     print(f'Bad epochs detection (autorject). {ctime()}')
     ar = autoreject.AutoReject(n_interpolate=[1, 2, 3, 4], random_state=11,
                             n_jobs=-1, verbose=True)
     ar.fit(epochs[:20])  # fit on a few epochs to save time
     epochs_ar, reject_log = ar.transform(epochs, return_log=True)
-    reject_log.plot('horizontal', show = False)
+    fig2 = reject_log.plot('horizontal', show = False)
     plt.savefig(output_folder + session_name + '_autoreject_before_ica.jpg', dpi = 160)
-    print(f'Plot saved in: {output_folder} {session_name} _autoreject_before_ica.jpg')
+
     print(f'Epochs rejected: {(reject_log.bad_epochs == True).sum()}')
 
     # ICA without bad epochs / bad channelss
     epochs.info['bads'] = bad_chs
     print(f'Fitting ICA. {ctime()}')
-    ica = mne.preprocessing.ICA(random_state=99)
+    ica = mne.preprocessing.ICA(random_state=99, n_components=30, method='infomax') # mne_icalabel needs infomax
     ica.fit(epochs[~reject_log.bad_epochs])
     print(f'Completed. {ctime()}')
 
@@ -119,46 +128,65 @@ def preprocess(session_name, output_folder, raw, montage, reference, stim_channe
         exclude_idx = [idx for idx, label in enumerate(labels) if label not in ["brain", "other"]]
         print(f"Excluding these ICA components: {exclude_idx}")
         ica.exclude = exclude_idx
-    print('You can now review ICA components and ICA labels outcome.')
 
     # ICA visual inspection
-    print('Visually inspect results and select eye-blinks components...')
-    ica.plot_components(picks = np.arange(0,30,1))
-    print(ica.exclude) # list of components excluded
-    ica.plot_components(ica.exclude, show = False)
+    if review_ica:
+        print('Visually inspect results and select eye-blinks components.')
+        ica.plot_components(picks = np.arange(0,30,1))
+        print(ica.exclude) # list of components excluded
+
+    # Applying ICA
+    print('Applying ICA')
+    fig2 = ica.plot_components(ica.exclude, show = False)
     plt.savefig(output_folder + session_name + '_ica_bad_components.jpg', dpi = 160)
-    ica.plot_overlay(epochs.average(), exclude=ica.exclude, show = False)
+    fig3 = ica.plot_overlay(epochs.average(), exclude=ica.exclude, show = False)
     plt.savefig(output_folder + session_name + '_ica_overlay.jpg', dpi = 160)
     ica.apply(epochs, exclude=ica.exclude)
     
     # Autoreject after high pass filter and ICA
+    print(f'Applying autoreject after ICA. {ctime()}')
     epochs.info['bads'] = []
     ar = autoreject.AutoReject(n_interpolate=[1, 2, 3, 4], random_state=11,
                             n_jobs=-1, verbose=True)
     ar.fit(epochs[:20])  # fit on the first 20 epochs to save time
     epochs_ar, reject_log = ar.transform(epochs, return_log=True)
-    epochs[reject_log.bad_epochs].plot(scalings=dict(eeg=100e-6))
+    fig4 = epochs[reject_log.bad_epochs].plot(scalings=dict(eeg=100e-6))
     reject_log.plot('horizontal', show = False)
     plt.savefig(output_folder + session_name + '_autoreject_after_ica.jpg', dpi = 160)
 
 
     # THIS PLOT CREATES PROBLEMS FOR SOME REASON
     # We will visualize the cleaned average data and compare it against the bad segments.
+    plt.close()
     evoked_bad = epochs[reject_log.bad_epochs].average()
     plt.figure()
-    plt.plot(evoked_bad.times, evoked_bad.data.T * 1e6, 'r', zorder=-1)
-    epochs_ar.average().plot(axes=plt.gca())
+    fig5 = plt.plot(evoked_bad.times, evoked_bad.data.T * 1e6, 'r', zorder=-1, show = False)
+    epochs_ar.average().plot(axes=plt.gca(), show = False )
     plt.savefig(output_folder + session_name + '_epochs_ar_average_badseg.jpg', dpi = 160)
 
 
     # Re-Referencing after ICA
+    print('Re-refering after ICA.')
     mne.set_eeg_reference(epochs_ar, ref_channels='average', copy = False)
 
     # Applying baseline correction
+    print('Applying baseline correction.')
     epochs_ar.apply_baseline(baseline)
+
+    # Saving report
+    print('Saving report.')
+    report.add_figure(fig1,captions='Raw_psd',section='raw')
+    report.add_figure(fig2,captions='Autoreject (before ICA)',section='raw')
+    report.add_figure(fig3,captions='ICA',section='raw')
+    report.add_figure(fig4,captions='Autoreject (after ICA)',section='raw')
+    report.add_figure(fig5,captions='Cleaned average data compared against bad segments', 
+                               section='raw')
+
+    report.save(output_folder + session_name + 'report_analysis.html',overwrite=True)
 
     # Saving cleaned epochs
     if save == True:
+        print('Saving epoched data cleaned.')
         epochs_ar.save(output_folder + session_name + '_cleaned_epochs.mff' , overwrite=True)
 
     return epochs_ar
