@@ -1,7 +1,7 @@
 def preprocess(session_name, output_folder, raw, montage, reference, stim_channel, picks,
                 events_id, tmin = -.5, tmax = 4, filter = (1, 40),
-                reject=dict(eeg=300e-6), baseline = None, save = False):
-
+                reject=dict(eeg=300e-6), baseline = (None, 0), ica_labels = True, save = False):
+    ### UPDATE SUMMARY
     """_summary_
     EEG data preprocessing for ERD analysis. 
     Steps: 
@@ -53,7 +53,7 @@ def preprocess(session_name, output_folder, raw, montage, reference, stim_channe
     montage = mne.channels.make_standard_montage(montage)
     
     # Filtering Data
-    print(f'Filtering data ({filter[0]} - {filter[1]}Hz. {ctime()})')
+    print(f'Filtering data ({filter[0]} - {filter[1]}Hz). {ctime()}')
     raw_filtered = raw.copy().filter(filter[0], filter[1])
     print(f'Filtering Done. {ctime()}')
 
@@ -107,7 +107,19 @@ def preprocess(session_name, output_folder, raw, montage, reference, stim_channe
     print(f'Fitting ICA. {ctime()}')
     ica = mne.preprocessing.ICA(random_state=99)
     ica.fit(epochs[~reject_log.bad_epochs])
-    print('Completed.')
+    print(f'Completed. {ctime()}')
+
+    # If ica labels is set to true, usa mne_icalabel to automatically label ICA components
+    if ica_labels:
+        print(f'Automatic ICA labelling (mne_icalabel).  {ctime()}')
+        from mne_icalabel import label_components
+        ic_labels = label_components(epochs[~reject_log.bad_epochs], ica, method="iclabel")
+        print(ic_labels)
+        labels = ic_labels["labels"]
+        exclude_idx = [idx for idx, label in enumerate(labels) if label not in ["brain", "other"]]
+        print(f"Excluding these ICA components: {exclude_idx}")
+        ica.exclude = exclude_idx
+    print('You can now review ICA components and ICA labels outcome.')
 
     # ICA visual inspection
     print('Visually inspect results and select eye-blinks components...')
@@ -129,24 +141,23 @@ def preprocess(session_name, output_folder, raw, montage, reference, stim_channe
     reject_log.plot('horizontal', show = False)
     plt.savefig(output_folder + session_name + '_autoreject_after_ica.jpg', dpi = 160)
 
+
     # We will visualize the cleaned average data and compare it against the bad segments.
     evoked_bad = epochs[reject_log.bad_epochs].average()
     plt.figure()
-    plt.plot(evoked_bad.times, evoked_bad.data.T * 1e6, 'r', zorder=-1, show = False)
-    epochs_ar.average().plot(axes=plt.gca(), show = False)
+    plt.plot(evoked_bad.times, evoked_bad.data.T * 1e6, 'r', zorder=-1)
+    epochs_ar.average().plot(axes=plt.gca())
     plt.savefig(output_folder + session_name + '_epochs_ar_average_badseg.jpg', dpi = 160)
-  
+
+
     # Re-Referencing after ICA
     mne.set_eeg_reference(epochs_ar, ref_channels='average', copy = False)
 
-    ### Applying baseline correction
-    ## Rodi said: from -800 to -200
-    ## Rodi said to epoch from - 1s to 4
-
-    epochs_ar.apply_baseline()
+    # Applying baseline correction
+    epochs_ar.apply_baseline(baseline)
 
     # Saving cleaned epochs
     if save == True:
-        epochs_ar.save(output_folder + session_name + '_cleaned_epochs.mff' ,overwrite=True)
+        epochs_ar.save(output_folder + session_name + '_cleaned_epochs.mff' , overwrite=True)
 
     return epochs_ar
