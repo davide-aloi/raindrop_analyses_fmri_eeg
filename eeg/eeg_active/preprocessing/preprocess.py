@@ -59,7 +59,7 @@ def preprocess(session_name, output_folder, raw, montage, reference, stim_channe
     # Filtering Data
     print(f'Filtering data 0.1 / 100Hz. {ctime()}')
     hi_pass, lo_pass = filter[0] , filter[1]
-    raw.filter(0.1, None)
+    raw.filter(1, None)
     raw.filter(None, 100) 
     print('Applying notch filter')
     raw.notch_filter([50,100], picks=picks, filter_length='auto',
