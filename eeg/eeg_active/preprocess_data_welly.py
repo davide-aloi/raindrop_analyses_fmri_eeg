@@ -1,5 +1,5 @@
 # Author Davide Aloi
-# Scripts for the analyses of the EEG data (active task) collected at the Wellington Hospital - Aloi Davide PhD UoB
+# Scripts for the preprocessing of the EEG data (active task) collected at the Wellington Hospital - Aloi Davide PhD UoB
 
 import numpy as np
 import mne
@@ -22,7 +22,6 @@ sessions = ['D:\\Raindrop_data\\p01\\p01_w01\\eeg_baseline\\active_task\\', # ba
             'D:\\Raindrop_data\\p01\\p01_w05\\eeg_baseline\\active_task\\', # baseline w5
             'D:\\Raindrop_data\\p01\\p01_w06\\day04_eeg\\active_task\\'] # post w6
             
-sessions = ['D:\\Raindrop_data\\p01\\p01_w01\\eeg_baseline\\active_task\\']
 # Paths to .mff files
 sessions_raw = []
 for n, session in enumerate(sessions):
@@ -30,7 +29,7 @@ for n, session in enumerate(sessions):
 
 
 # run this for each session
-session = sessions_raw[0]
+session = sessions_raw[5]
 print(session)
 session_name = session.split('\\')[3]
 results_path = output_folder + session_name
@@ -56,17 +55,22 @@ epochs = mne.Epochs(raw, events, dict(move=1,relax=2), -1, 3, baseline=None,
                 reject=None, verbose=False, detrend=0, preload=True)
 epochs_cleaned = epochs.copy()
 
+
 # Ransac to identify bad channels
+from autoreject import get_rejection_threshold  # noqa
+reject = get_rejection_threshold(epochs, decim=2)
 ransac = Ransac(verbose=True, picks=picks, n_jobs=-1)
 epochs_clean = ransac.fit_transform(epochs)
 epochs.info['bads'] = ransac.bad_chs_ # list with bad channels according to RANSAC 
 print('Electrodes marked as bad by RANSAC')
 print(epochs.info['bads'])
+
 # annotate other bad channels, bad epochs
-epochs.plot()
+epochs.plot(n_channels = len(raw.ch_names) )
 
 bad_chs = epochs.info['bads']
-epochs.drop_bad()
+epochs.drop_bad(reject = reject)
+
 
 # ICA
 ica = mne.preprocessing.ICA(random_state=99, n_components=25, # mne_icalabel needs infomax
@@ -102,8 +106,11 @@ epochs_cleaned.filter(1, None)
 epochs_cleaned.filter(None, 40)
 mne.set_eeg_reference(epochs_cleaned, ref_channels='average', copy = False)
 epochs_cleaned.apply_baseline(baseline = (-0.8,-0.2))
-epochs_cleaned.plot()
-epochs_cleaned.drop_bad()
+reject = get_rejection_threshold(epochs_cleaned, decim=2)
+
+epochs_cleaned.plot(n_channels = len(raw.ch_names))
+
+epochs_cleaned.drop_bad(reject = reject)
 
 evoked_move_clean = epochs_cleaned['move'].average()
 evoked_move_clean.plot(picks='eeg', spatial_colors=True, gfp=True, show = False)
@@ -114,4 +121,3 @@ evoked_relax_clean.plot(picks='eeg', spatial_colors=True, gfp=True, show = False
 plt.savefig(results_path + '_evoked_relax.jpg', dpi = 300, bbox_inches='tight')
 
 epochs_cleaned.save(results_path + '_cleaned-epo.fif' , overwrite=True)
-
