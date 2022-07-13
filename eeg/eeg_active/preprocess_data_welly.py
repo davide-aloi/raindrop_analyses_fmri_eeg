@@ -40,7 +40,7 @@ events = mne.find_events(raw, stim_channel='STI 014', verbose=True)
 
 # filtering
 raw.filter(1, None)
-raw.filter(None, 100) 
+raw.filter(None, 100)
 raw.notch_filter([50,100,150], picks=picks, filter_length='auto',
             phase='zero')
 
