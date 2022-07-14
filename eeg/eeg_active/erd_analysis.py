@@ -18,9 +18,10 @@ import glob
 epochs_cleaned_folder = 'D:\\Raindrop_eeg_analysis\\p01\\'
 sessions_raw = glob.glob(epochs_cleaned_folder + '*-epo.fif')
 event_ids = dict(move=1,relax=2)
-freqs = np.arange(7, 31) # beta
+freqs = np.arange(7, 31, 1) # mu and beta
+n_cycles = freqs / 2 
 tmin, tmax = -0.8, 3  #???
-baseline = [-1, 0]  # baseline interval (in s)
+baseline = [-0.5, -0.1]  # baseline interval (in s) (change this after discussing with damian)
 vmin,vmax = -1, 1.5
 cnorm = TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)  # min, center & max ERDS
 kwargs = dict(n_permutations=100, step_down_p=0.05, seed=1,
@@ -39,7 +40,7 @@ for session in sessions_raw:
     
     # iterate each channel group
     for n, picks in enumerate(picks_subsets):
-        tfr = tfr_multitaper(epochs, freqs=freqs, n_cycles=freqs, use_fft=True,
+        tfr = tfr_multitaper(epochs, freqs=freqs, n_cycles=n_cycles, use_fft=True,
                             return_itc=False, average=False, decim=2, picks = picks)
         tfr.crop(tmin, tmax).apply_baseline(baseline, mode="percent")
 
