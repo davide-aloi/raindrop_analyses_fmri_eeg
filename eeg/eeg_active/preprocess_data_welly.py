@@ -28,7 +28,7 @@ for n, session in enumerate(sessions):
     sessions_raw.append(glob.glob(session + '\*.mff')[0])
 
 # Run the code below for each session (changing session_raw[n])
-session = sessions_raw[0]
+session = sessions_raw[5]
 print(session)
 session_name = session.split('\\')[3]
 results_path = output_folder + session_name
@@ -63,7 +63,7 @@ plt.close()
 # Epoching only around MOVE (-4, 6)
 epochs = mne.Epochs(raw, events, dict(move=1), -4, 6, baseline=None,
                 reject=None, verbose=False, detrend=0, preload=True)
-epochs_cleaned = epochs.copy()
+epochs_cleaned = epochs.copy() # creating a copy of epochs
 
 # Ransac to identify bad channels
 from autoreject import get_rejection_threshold  # noqa
@@ -76,8 +76,8 @@ print(epochs.info['bads'])
 # Annotate other bad channels and annotate bad epochs
 epochs.plot(n_channels = len(raw.ch_names))
 bad_chs = epochs.info['bads'] # list of bad channels
+epochs.drop_bad() 
 good_epochs = epochs.selection # list of good epochs
-epochs.drop_bad() # I don't think this is necessary
 
 # Re reference to average
 mne.set_eeg_reference(epochs, ref_channels='average', copy = False)
@@ -105,6 +105,8 @@ plt.savefig(results_path + '_ica_sources.jpg', dpi = 300)
 plt.close()
 
 # Visual inspection, check ICA components
+ica.plot_components(picks = np.arange(0,20,1))
+
 ica.plot_components(picks = np.arange(0,20,1), show = False)
 plt.savefig(results_path + '_ica_components.jpg', dpi = 300)
 plt.close()
