@@ -27,9 +27,8 @@ sessions_raw = []
 for n, session in enumerate(sessions):
     sessions_raw.append(glob.glob(session + '\*.mff')[0])
 
-
-# run this for each session
-session = sessions_raw[5]
+# Run the code below for each session (changing session_raw[n])
+session = sessions_raw[0]
 print(session)
 session_name = session.split('\\')[3]
 results_path = output_folder + session_name
@@ -38,48 +37,59 @@ picks = mne.pick_types(raw.info, meg=False, eeg=True, eog=True, stim=False)
 montage = mne.channels.make_standard_montage('GSN-HydroCel-128')
 events = mne.find_events(raw, stim_channel='STI 014', verbose=True)
 
-# filtering
+## Printing some information about the events
+gaps_btw_onsets = []
+for i, event in enumerate(events[:,0]/1000):
+    gap = events[i,0]/1000 - events[i-1,0]/1000
+    gaps_btw_onsets.append(gap)
+gaps_btw_onsets = np.delete(np.asarray(gaps_btw_onsets),[0])
+print('Time between onsets:')
+print(f'Mean: {np.mean(gaps_btw_onsets):.2f}s' )
+print(f'Std: {np.std(gaps_btw_onsets):.2f}s' )
+print(f'Max: {np.max(gaps_btw_onsets):.2f}s' )
+print(f'Min: {np.min(gaps_btw_onsets):.2f}s' )
+
+# Filtering
 raw.filter(1, None)
 raw.filter(None, 100)
 raw.notch_filter([50,100,150], picks=picks, filter_length='auto',
             phase='zero')
 
-raw.set_eeg_reference(ref_channels='average')
-#raw.apply_proj()
+# Raw psd plot
 raw.plot_psd(show=False)
 plt.savefig(results_path + '_raw_psd.jpg', dpi = 300)
 plt.close()
 
-# epoching
-epochs = mne.Epochs(raw, events, dict(move=1,relax=2), -1, 3, baseline=None,
+# Epoching only around MOVE (-4, 6)
+epochs = mne.Epochs(raw, events, dict(move=1), -4, 6, baseline=None,
                 reject=None, verbose=False, detrend=0, preload=True)
 epochs_cleaned = epochs.copy()
 
-
 # Ransac to identify bad channels
 from autoreject import get_rejection_threshold  # noqa
-reject = get_rejection_threshold(epochs, decim=2)
 ransac = Ransac(verbose=True, picks=picks, n_jobs=-1)
 epochs_clean = ransac.fit_transform(epochs)
 epochs.info['bads'] = ransac.bad_chs_ # list with bad channels according to RANSAC 
 print('Electrodes marked as bad by RANSAC')
 print(epochs.info['bads'])
 
-# annotate other bad channels, bad epochs
-epochs.plot(n_channels = len(raw.ch_names) )
+# Annotate other bad channels and annotate bad epochs
+epochs.plot(n_channels = len(raw.ch_names))
+bad_chs = epochs.info['bads'] # list of bad channels
+good_epochs = epochs.selection # list of good epochs
+epochs.drop_bad() # I don't think this is necessary
 
-bad_chs = epochs.info['bads']
-epochs.drop_bad(reject = reject)
+# Re reference to average
+mne.set_eeg_reference(epochs, ref_channels='average', copy = False)
 
-
-# ICA
+# ICA to remove eye blinks
 ica = mne.preprocessing.ICA(random_state=99, n_components=25, # mne_icalabel needs infomax
                             method='infomax', fit_params=dict(extended=True))
 # fitting ICA         
 ica.fit(epochs)
 ica
 
-# Automatic Labelling
+# Automatic Labelling (check results with ICA plot sources)
 from mne_icalabel import label_components
 ic_labels = label_components(epochs, ica, method="iclabel")
 print(ic_labels)
@@ -89,35 +99,46 @@ print(f"Excluding these ICA components: {exclude_idx}")
 ica.exclude = exclude_idx
 
 ica.plot_sources(epochs, show_scrollbars=False)
-
+# Automatically save above plot
 ica.plot_sources(epochs, show_scrollbars=False, show = False)
 plt.savefig(results_path + '_ica_sources.jpg', dpi = 300)
 plt.close()
 
-# visual inspection
+# Visual inspection, check ICA components
 ica.plot_components(picks = np.arange(0,20,1), show = False)
 plt.savefig(results_path + '_ica_components.jpg', dpi = 300)
 plt.close()
 
 ica.apply(epochs_cleaned, exclude=ica.exclude)
+
+# Removing bad epochs and bad channels from epochs_cleaned
+epochs_to_drop = [0] # I always remove the first event as there is no relax baseline
+
+# I'm sure there's a nicer way of doing this
+for i in np.arange(2,72,2):
+    if not np.isin(i, good_epochs):
+        # I divide the index by 2 because I had removed the "relax" epochs so now epochs have
+        # a new index
+        epochs_to_drop.append(int(i/2))
+
+# Dropping from epochs_cleaned the epochs that were previously marked as bad 
+epochs_cleaned.drop(epochs_to_drop)
+
+# Interpolating the channels that were marked as bad
 epochs_cleaned.info['bads'] = epochs.info['bads']
 epochs_cleaned.interpolate_bads()
-epochs_cleaned.filter(1, None) 
+
+# Applying low pass filter
 epochs_cleaned.filter(None, 40)
+
+# Re referencing data
 mne.set_eeg_reference(epochs_cleaned, ref_channels='average', copy = False)
-epochs_cleaned.apply_baseline(baseline = (-0.8,-0.2))
-reject = get_rejection_threshold(epochs_cleaned, decim=2)
 
+# Plotting cleaned data and erp around MOVE
 epochs_cleaned.plot(n_channels = len(raw.ch_names))
-
-epochs_cleaned.drop_bad(reject = reject)
-
 evoked_move_clean = epochs_cleaned['move'].average()
 evoked_move_clean.plot(picks='eeg', spatial_colors=True, gfp=True, show = False)
 plt.savefig(results_path + '_evoked_move.jpg', dpi = 300, bbox_inches='tight')
 
-evoked_relax_clean = epochs_cleaned['relax'].average()
-evoked_relax_clean.plot(picks='eeg', spatial_colors=True, gfp=True, show = False)
-plt.savefig(results_path + '_evoked_relax.jpg', dpi = 300, bbox_inches='tight')
-
+# Saving results
 epochs_cleaned.save(results_path + '_cleaned-epo.fif' , overwrite=True)
