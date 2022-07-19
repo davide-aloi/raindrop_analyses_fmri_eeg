@@ -17,14 +17,15 @@ import glob
 # Settings
 epochs_cleaned_folder = 'D:\\Raindrop_eeg_analysis\\p01\\'
 sessions_raw = glob.glob(epochs_cleaned_folder + '*-epo.fif')
-event_ids = dict(move=1,relax=2)
+event_ids = dict(move=1)
 freqs = np.arange(7, 31, 1) # mu and beta
 n_cycles = freqs / 2 
 time_bandwidth = 2.0
 
 tmin, tmax = -0.8, 3  #???
 baseline = [-0.5, -0.1]  # baseline interval (in s) (change this after discussing with damian)
-vmin,vmax = -1, 1.5
+vmin,vmax = -3.5, 5.5
+
 cnorm = TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)  # min, center & max ERDS
 kwargs = dict(n_permutations=100, step_down_p=0.05, seed=1,
             buffer_size=None, out_type='mask')  # for cluster test
