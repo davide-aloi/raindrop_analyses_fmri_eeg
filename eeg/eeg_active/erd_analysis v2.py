@@ -19,9 +19,8 @@ freqs_toplot = [(8,13),(13,30)]
 freqs_names = ['Mu','Beta']
 n_cycles = freqs / 2 
 time_bandwidth = 2.0
-tmin, tmax = -3.5, 4  #??? do not crop
+tmin, tmax = -3.5, 4  # when to crop tfr 
 baseline = [-1, -0.5]  # baseline interval (in s) 
-vmin,vmax = -4, 6 # to avoid displaying edge artefact reduce this (I think)
 
 #sessions_raw = [sessions_raw[0]] # if you want to debug on one session
 
