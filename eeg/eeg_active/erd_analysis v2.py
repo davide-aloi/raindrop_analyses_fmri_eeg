@@ -22,9 +22,6 @@ time_bandwidth = 2.0
 tmin, tmax = -3.5, 4  #??? do not crop
 baseline = [-1, -0.5]  # baseline interval (in s) 
 vmin,vmax = -4, 6 # to avoid displaying edge artefact reduce this (I think)
-cnorm = TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)  # min, center & max ERDS
-kwargs = dict(n_permutations=100, step_down_p=0.05, seed=1,
-            buffer_size=None, out_type='mask')
 
 #sessions_raw = [sessions_raw[0]] # if you want to debug on one session
 
