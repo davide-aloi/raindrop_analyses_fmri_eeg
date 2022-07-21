@@ -14,7 +14,7 @@
 %% Part 2: Coregistration
 % use preprocessing\preprocessing_2_coreg_job.m from the batch editor to run
 % the coregistration between the anatomical and the functional scans (of each
-% task).
+% fmri task).
 
 %% Part 3: Smoothing
 % use preprocessing\preprocessing_3_smooth_job to smooth the realigned
