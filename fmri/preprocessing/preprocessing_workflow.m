@@ -209,3 +209,15 @@ rp = dir('rp*.txt');
 mov_regr = stick_regressor(rp.name, max_mm, max_rad)';
 disp({'Volumes excluded: '} + string(sum(mov_regr(7,:) == 0)) + ' out of ' + string(numel(mov_regr(1,:))))
 writetable(table(mov_regr'), 'regr.txt')
+
+% stick regressor for the resting state data
+max_mm = 2
+max_rad = 0.035
+
+cd D:\\Raindrop_data\\p01\\p01_w06\\day05\\fmri_data\\RESTING_STATE_POST_0010\\nifti\\
+disp(pwd)
+rp = dir('rp*.txt');
+mov_regr = stick_regressor(rp.name, max_mm, max_rad)';
+disp({'Volumes excluded: '} + string(sum(mov_regr(7,:) == 0)) + ' out of ' + string(numel(mov_regr(1,:))))
+writetable(table(mov_regr'), 'regr.txt')
+

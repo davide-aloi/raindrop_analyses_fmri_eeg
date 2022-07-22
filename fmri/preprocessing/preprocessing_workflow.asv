@@ -7,15 +7,14 @@
 %% Step 2: Realign and reslice all functional files
 % use job file realign_all_functional_scans_job.m
 % I've always used as a reference the first joystick scan (so all fMRI tasks are in the
-% same space basically). (How to do it: make a copy of the realigned scan from the joystick
-% task and use it as first image (no need to load all the volumes, just the
-% first one)
-
+% same space basically). (How to do it: make a copy of the realigned scan from a joystick
+% task session and use it as first image in the realignment job
+% (ps: for the first image there's no need to load all the volumes, just the first one)
 
 %% Part 2: Coregistration
 % use preprocessing\preprocessing_2_coreg_job.m from the batch editor to run
 % the coregistration between the anatomical and the functional scans (of each
-% task).
+% fmri task).
 
 %% Part 3: Smoothing
 % use preprocessing\preprocessing_3_smooth_job to smooth the realigned
@@ -210,3 +209,18 @@ rp = dir('rp*.txt');
 mov_regr = stick_regressor(rp.name, max_mm, max_rad)';
 disp({'Volumes excluded: '} + string(sum(mov_regr(7,:) == 0)) + ' out of ' + string(numel(mov_regr(1,:))))
 writetable(table(mov_regr'), 'regr.txt')
+
+% stick regressor for the resting state data
+max_mm = 2
+max_rad = 0.035
+
+cd D:\\Raindrop_data\\p01\\p01_w04\\day05\\fmri_data\\RESTING_STATE_BASELINE_0007\\nifti\\
+disp(pwd)
+rp = dir('rp*.txt');
+mov_regr = stick_regressor(rp.name, max_mm, max_rad)';
+disp({'Volumes excluded: '} + string(sum(mov_regr(7,:) == 0)) + ' out of ' + string(numel(mov_regr(1,:))))
+writetable(table(mov_regr'), 'regr.txt')
+
+
+
+
